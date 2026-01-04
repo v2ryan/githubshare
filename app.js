@@ -94,13 +94,14 @@ async function saveNewEntry() {
         return;
     }
 
-    // Optimistic UI: Close immediately
+    // Generic close/clear for UI
+    const currentEditId = editingId; // Capture ID before it gets reset by closeModals()
     closeModals();
     clearInputs();
 
-    if (editingId) {
+    if (currentEditId) {
         // UPDATE Existing
-        updateDoc(doc(db, 'links', editingId), {
+        updateDoc(doc(db, 'links', currentEditId), {
             name,
             url,
             learn,
