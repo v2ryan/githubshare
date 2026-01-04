@@ -23,6 +23,7 @@ const linksCol = collection(db, 'links');
 // --- STATE ---
 let isAdmin = false;
 let currentAction = null; // { type: 'edit'|'delete'|'admin', id: string, data: any }
+let editingId = null;
 
 // --- DOM ELEMENTS ---
 const linksBody = document.getElementById('links-body');
@@ -97,17 +98,31 @@ async function saveNewEntry() {
     closeModals();
     clearInputs();
 
-    addDoc(linksCol, {
-        name,
-        url,
-        learn,
-        password, // 在實際應用中應進行加密 (Hash)
-        createdAt: new Date()
-    }).catch((e) => {
-        console.error("儲存失敗: ", e);
-        alert("儲存失敗，請檢查網路連接或稍後再試。\n" + e.message);
-        // Optional: Re-open modal or restore data if needed, but for now just alert
-    });
+    if (editingId) {
+        // UPDATE Existing
+        updateDoc(doc(db, 'links', editingId), {
+            name,
+            url,
+            learn,
+            password,
+            updatedAt: new Date()
+        }).catch((e) => {
+            console.error("更新失敗: ", e);
+            alert("更新失敗，請檢查網路連接或稍後再試。\n" + e.message);
+        });
+    } else {
+        // ADD New
+        addDoc(linksCol, {
+            name,
+            url,
+            learn,
+            password, // 在實際應用中應進行加密 (Hash)
+            createdAt: new Date()
+        }).catch((e) => {
+            console.error("儲存失敗: ", e);
+            alert("儲存失敗，請檢查網路連接或稍後再試。\n" + e.message);
+        });
+    }
 }
 
 async function handleEdit(id) {
@@ -150,9 +165,18 @@ async function verifyAction() {
                 closeModals();
             }
         } else if (type === 'edit') {
-            const newName = prompt('請輸入新名稱：', snap.data().name);
-            if (newName) await updateDoc(docRef, { name: newName });
-            closeModals();
+            // Open Edit Modal with Pre-filled Data
+            editingId = id;
+            inputName.value = snap.data().name || '';
+            inputUrl.value = snap.data().url || '';
+            inputLearn.value = snap.data().learn || '';
+            inputPassword.value = snap.data().password || ''; // Pre-fill proper password
+
+            document.getElementById('modal-title-entry').innerText = '編輯條目';
+            document.getElementById('save-new').innerText = '更新條目';
+            addModal.classList.remove('hidden');
+
+            closeAuthModals(); // Close auth modal only
         }
     } else {
         alert('密碼不正確');
@@ -180,6 +204,12 @@ function closeModals() {
     addModal.classList.add('hidden');
     authModal.classList.add('hidden');
     authPassword.value = '';
+    editingId = null; // Reset edit state on close
+}
+
+function closeAuthModals() {
+    authModal.classList.add('hidden');
+    authPassword.value = '';
 }
 
 function clearInputs() {
@@ -191,7 +221,13 @@ function clearInputs() {
 
 // --- 事件監聽器 ---
 
-addBtn.onclick = () => addModal.classList.remove('hidden');
+addBtn.onclick = () => {
+    editingId = null;
+    clearInputs();
+    document.getElementById('modal-title-entry').innerText = '新增條目';
+    document.getElementById('save-new').innerText = '儲存條目';
+    addModal.classList.remove('hidden');
+};
 document.getElementById('cancel-add').onclick = closeModals;
 document.getElementById('save-new').onclick = saveNewEntry;
 
