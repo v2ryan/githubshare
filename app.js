@@ -35,7 +35,7 @@ const adminIndicator = document.getElementById('admin-indicator');
 
 // Forms
 const inputName = document.getElementById('input-name');
-const inputGithub = document.getElementById('input-github');
+const inputUrl = document.getElementById('input-url');
 const inputLearn = document.getElementById('input-learn');
 const inputPassword = document.getElementById('input-password');
 const authPassword = document.getElementById('auth-password');
@@ -56,7 +56,7 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
 
         row.innerHTML = `
             <td><span class="mobile-label">人名</span>${data.name}</td>
-            <td><span class="mobile-label">網頁</span><a href="https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}" target="_blank" class="github-link"><i class="fas fa-external-link-alt"></i> https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}</a></td>
+            <td><span class="mobile-label">網頁</span><a href="${data.url}" target="_blank" class="github-link"><i class="fas fa-external-link-alt"></i> ${data.url}</a></td>
             <td><span class="mobile-label">想學的項目</span>${data.learn || '-'}</td>
             <td class="actions">
                 <span class="mobile-label">操作</span>
@@ -83,13 +83,13 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
 
 async function saveNewEntry() {
     const name = inputName.value.trim();
-    const github = inputGithub.value.trim();
+    const url = inputUrl.value.trim();
     const learn = inputLearn.value.trim();
     const password = inputPassword.value;
     const saveBtn = document.getElementById('save-new');
 
-    if (!name || !github || !password) {
-        alert('請填寫所有欄位。');
+    if (!password) {
+        alert('請至少設置編輯密碼。');
         return;
     }
 
@@ -99,7 +99,7 @@ async function saveNewEntry() {
 
     addDoc(linksCol, {
         name,
-        github,
+        url,
         learn,
         password, // 在實際應用中應進行加密 (Hash)
         createdAt: new Date()
@@ -184,7 +184,7 @@ function closeModals() {
 
 function clearInputs() {
     inputName.value = '';
-    inputGithub.value = '';
+    inputUrl.value = '';
     inputLearn.value = '';
     inputPassword.value = '';
 }
