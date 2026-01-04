@@ -59,8 +59,8 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
             <td><span class="mobile-label">網頁</span><a href="https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}" target="_blank" class="github-link"><i class="fas fa-external-link-alt"></i> 前往網頁</a></td>
             <td class="actions">
                 <span class="mobile-label">操作</span>
-                <button class="action-btn edit-trigger" data-id="${id}"><i class="fas fa-edit"></i></button>
-                <button class="action-btn delete delete-trigger" data-id="${id}"><i class="fas fa-trash"></i></button>
+                <button class="action-btn edit-trigger" data-id="${id}" title="編輯"><i class="fas fa-edit"></i></button>
+                <button class="action-btn delete delete-trigger" data-id="${id}" title="刪除"><i class="fas fa-trash"></i></button>
             </td>
         `;
         linksBody.appendChild(row);
@@ -77,11 +77,16 @@ async function saveNewEntry() {
     const name = inputName.value.trim();
     const github = inputGithub.value.trim();
     const password = inputPassword.value;
+    const saveBtn = document.getElementById('save-new');
 
     if (!name || !github || !password) {
         alert('請填寫所有欄位。');
         return;
     }
+
+    const originalText = saveBtn.innerText;
+    saveBtn.innerText = '儲存中...';
+    saveBtn.disabled = true;
 
     try {
         await addDoc(linksCol, {
@@ -94,6 +99,10 @@ async function saveNewEntry() {
         clearInputs();
     } catch (e) {
         console.error("儲存失敗: ", e);
+        alert("儲存失敗，請檢查網路連接或稍後再試。\n" + e.message);
+    } finally {
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
     }
 }
 
@@ -118,7 +127,7 @@ async function verifyAction() {
     const { type, id } = currentAction;
 
     if (type === 'admin') {
-        if (password === 'admin123') { // 提示：請修改此預設密碼
+        if (password === '65775833') { // 提示：請修改此預設密碼
             setAdminStatus(true);
             closeModals();
         } else {
