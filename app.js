@@ -36,6 +36,7 @@ const adminIndicator = document.getElementById('admin-indicator');
 // Forms
 const inputName = document.getElementById('input-name');
 const inputGithub = document.getElementById('input-github');
+const inputLearn = document.getElementById('input-learn');
 const inputPassword = document.getElementById('input-password');
 const authPassword = document.getElementById('auth-password');
 const authTitle = document.getElementById('auth-title');
@@ -45,7 +46,7 @@ const authDesc = document.getElementById('auth-desc');
 onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
     linksBody.innerHTML = '';
     if (snapshot.empty) {
-        linksBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: #94a3b8;">暫無記錄，請點擊上方按鈕新增！</td></tr>';
+        linksBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #94a3b8;">暫無記錄，請點擊上方按鈕新增！</td></tr>';
         return;
     }
     snapshot.forEach(docSnap => {
@@ -54,9 +55,9 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
         const row = document.createElement('tr');
 
         row.innerHTML = `
-            <td><span class="mobile-label">名稱</span>${data.name}</td>
-            <td><span class="mobile-label">倉庫</span><a href="https://github.com/${data.github}" target="_blank" class="github-link"><i class="fab fa-github"></i> ${data.github}</a></td>
-            <td><span class="mobile-label">網頁</span><a href="https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}" target="_blank" class="github-link"><i class="fas fa-external-link-alt"></i> 前往網頁</a></td>
+            <td><span class="mobile-label">人名</span>${data.name}</td>
+            <td><span class="mobile-label">網頁</span><a href="https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}" target="_blank" class="github-link"><i class="fas fa-external-link-alt"></i> https://${data.github.split('/')[0]}.github.io/${data.github.split('/')[1] || ''}</a></td>
+            <td><span class="mobile-label">想學的項目</span>${data.learn || '-'}</td>
             <td class="actions">
                 <span class="mobile-label">操作</span>
                 <button class="action-btn edit-trigger" data-id="${id}" title="編輯"><i class="fas fa-edit"></i></button>
@@ -69,6 +70,13 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
     // Re-bind listeners
     document.querySelectorAll('.edit-trigger').forEach(btn => btn.onclick = () => handleEdit(btn.dataset.id));
     document.querySelectorAll('.delete-trigger').forEach(btn => btn.onclick = () => handleDelete(btn.dataset.id));
+}, (error) => {
+    console.error("讀取失敗:", error);
+    if (error.code === 'permission-denied') {
+        linksBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">權限不足：請檢查 Firebase 安全規則 (Security Rules) 是否已設為公開 (Test Mode)。</td></tr>';
+    } else {
+        linksBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">連接失敗：${error.message}</td></tr>`;
+    }
 });
 
 // --- ACTIONS ---
@@ -76,6 +84,7 @@ onSnapshot(query(linksCol, orderBy('createdAt', 'desc')), (snapshot) => {
 async function saveNewEntry() {
     const name = inputName.value.trim();
     const github = inputGithub.value.trim();
+    const learn = inputLearn.value.trim();
     const password = inputPassword.value;
     const saveBtn = document.getElementById('save-new');
 
@@ -84,26 +93,21 @@ async function saveNewEntry() {
         return;
     }
 
-    const originalText = saveBtn.innerText;
-    saveBtn.innerText = '儲存中...';
-    saveBtn.disabled = true;
+    // Optimistic UI: Close immediately
+    closeModals();
+    clearInputs();
 
-    try {
-        await addDoc(linksCol, {
-            name,
-            github,
-            password, // 在實際應用中應進行加密 (Hash)
-            createdAt: new Date()
-        });
-        closeModals();
-        clearInputs();
-    } catch (e) {
+    addDoc(linksCol, {
+        name,
+        github,
+        learn,
+        password, // 在實際應用中應進行加密 (Hash)
+        createdAt: new Date()
+    }).catch((e) => {
         console.error("儲存失敗: ", e);
         alert("儲存失敗，請檢查網路連接或稍後再試。\n" + e.message);
-    } finally {
-        saveBtn.innerText = originalText;
-        saveBtn.disabled = false;
-    }
+        // Optional: Re-open modal or restore data if needed, but for now just alert
+    });
 }
 
 async function handleEdit(id) {
@@ -181,6 +185,7 @@ function closeModals() {
 function clearInputs() {
     inputName.value = '';
     inputGithub.value = '';
+    inputLearn.value = '';
     inputPassword.value = '';
 }
 

@@ -34,16 +34,16 @@
                 <table id="links-table">
                     <thead>
                         <tr>
-                            <th>項目名稱</th>
-                            <th>GitHub 倉庫</th>
+                            <th>人名</th>
                             <th>GitHub 網頁</th>
+                            <th>想學的項目</th>
                             <th>操作</th>
                         </tr>
                     </thead>
                     <tbody id="links-body">
                         <!-- Data will be loaded here -->
                         <tr class="loading">
-                            <td colspan="4">正在連接資料庫...</td>
+                            <td colspan="5">正在連接資料庫...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -60,12 +60,16 @@
         <div class="modal-content">
             <h2>新增條目</h2>
             <div class="form-group">
-                <label>顯示名稱</label>
-                <input type="text" id="input-name" placeholder="例如：我的個人網站">
+                <label>人名</label>
+                <input type="text" id="input-name" placeholder="例如：王小明">
             </div>
             <div class="form-group">
                 <label>GitHub 用戶名/倉庫名</label>
                 <input type="text" id="input-github" placeholder="username/repo">
+            </div>
+            <div class="form-group">
+                <label>想學的項目</label>
+                <input type="text" id="input-learn" placeholder="例如：React, Firebase...">
             </div>
             <div class="form-group">
                 <label>設置編輯密碼</label>
